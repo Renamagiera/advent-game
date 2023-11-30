@@ -24,9 +24,9 @@ class Game extends Phaser.Scene{
 
     preload ()
     {
-        this.load.image('bg', 'fileadmin/assets/rect1030.png');
-        this.load.image('button', 'fileadmin/assets/button.png');
-        this.load.image('sky', 'fileadmin/assets/sky.jpg');
+
+
+        this.load.image("sky", "fileadmin/assets/sky.jpg");
         this.load.image('very_small_block', 'fileadmin/assets/block.png');
         this.load.image('small_block', 'fileadmin/assets/small_block.png');
         this.load.image('middle_block', 'fileadmin/assets/middle_block.png');
@@ -92,12 +92,13 @@ class Game extends Phaser.Scene{
         this.LEVEL4_Y = this.FILLER_TOP_Y - percentage(60) - small_block_height*3;
 
         this.createPlatform(this.GAME_WIDTH - percentage(10), this.LEVEL1_Y);
+        console.log(this.GAME_WIDTH - percentage(10));
         this.createPlatform(small_block_width + percentage(10), this.LEVEL2_Y);
         this.createPlatform(this.GAME_WIDTH - percentage(10), this.LEVEL3_Y);
         this.createPlatform(small_block_width + percentage(10), this.LEVEL4_Y);
 
         // add button left
-        this.btn = this.add.image(
+        this.add.image(
             this.GAME_WIDTH / 5,
             this.GAME_HEIGHT - (this.GAME_HEIGHT / 10),
             'left')
