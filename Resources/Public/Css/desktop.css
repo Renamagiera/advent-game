@@ -1,0 +1,16 @@
+
+@media only screen and (min-width: 500px) {
+
+    body {
+        display: flex;
+        justify-content: center;
+    }
+
+    canvas {
+        border: solid 5px dodgerblue;
+        margin: 0;
+        padding: 0;
+        position: fixed;
+        top: 0;
+    }
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="83ffa226-ffbe-4dfb-9139-03de032b4ceb" name="STRATO">
+        <fileTransfer rootFolder="/STRATO-apps/typo3_03/app/typo3conf/ext/advent_game" accessType="SFTP" host="ssh.strato.de" port="22" sshConfigId="07fb8f4f-6adb-4247-a471-92db6be7bbde" sshConfig="thomasadvent.com@ssh.strato.de:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
