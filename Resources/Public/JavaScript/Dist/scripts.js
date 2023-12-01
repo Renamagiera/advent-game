@@ -5,11 +5,11 @@
  */
 
 const innerWidthCalc = () => {
-    return innerWidth >= 500 ? 500 : innerWidth;
+    return innerWidth >= 500 ? 500 : outerWidth;
 };
 
 const innerHeightCalc = () => {
-    return innerHeight >= 800 ? 800 : innerHeight;
+    return innerHeight >= 800 ? 800 : outerHeight;
 };
 
 const config = {
@@ -23,7 +23,7 @@ const config = {
             debug: true
         }
     },
-    scene: [Game]
+    scene: [Game],
 };
 
 let game = new Phaser.Game(config);
