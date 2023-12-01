@@ -1,29 +1,35 @@
 class Game extends Phaser.Scene{
-
-    // idea: set static y-coordinates, where blocks can be added easy, like levels
-    /***
-     * level fin
-     * level 1 blocks
-     * level 0 blocks
-     * ***/
-
-    GAME_WIDTH = window.innerWidth;
-    GAME_HEIGHT = window.innerHeight;
-    SHIFT_DOWN_FILLER = 50;
-    FILLER_HEIGHT;
-    FILLER_TOP_Y;
     VELOCITY = 100;
-    BLOCK_SCALE = .2;
     MOUSE_WIDTH;
     MOUSE_HEIGHT;
-    MOUSE_SCALE_BODY = .2;
     MOUSE_SCALE_HIT_BOX = 1;
-    BLOCK_PIVOT_Y = 1;
+    DEFAULT_PIVOT_Y = 1;
+
     constructor() {
         super();
+        this.gameWidth = config.width;
+        this.gameHeight = config.height;
+        this.mouseSpriteHeight = 205;
+        this.mouseSpriteWidth = 300;
+        this.mouseScale = .2;
+        this.mouseScaledHeight = this.mouseSpriteHeight * this.mouseScale;
+        this.mouseScaledWidth = this.mouseSpriteWidth * this.mouseScale;
+        this.blockHeight = 125;
+        this.blockScale = .2;
+        this.blockScaledHeight = this.blockHeight * this.blockScale;
+        this.spaceToWall = this.mouseScaledWidth * .6;
+        this.levelGround = this.gameHeight - this.percentageHeight(20);
+        this.levelOne = this.levelGround - this.mouseScaledHeight;
+        this.levelTwo = this.levelOne - this.mouseScaledHeight*1.4 - this.blockScaledHeight;
+        this.levelThree = this.levelTwo - this.mouseScaledHeight*1.4 - this.blockScaledHeight;
+        this.levelFour = this.levelThree - this.mouseScaledHeight*1.4 - this.blockScaledHeight;
+        this.levelFive = this.levelFour - this.mouseScaledHeight*1.4 - this.blockScaledHeight;
     }
 
-    preload ()
+    percentageHeight(percent) {return (this.gameHeight / 100) * percent;}
+    spaceToPlatform() {return this.mouseScaledHeight*1.4 - this.blockScaledHeight;}
+
+    preload()
     {
         this.load.image("sky", "fileadmin/assets/sky.jpg");
         this.load.image('very_small_block', 'fileadmin/assets/block.png');
@@ -38,8 +44,8 @@ class Game extends Phaser.Scene{
             frameHeight: 380
         });
         this.load.spritesheet('mouse3', 'fileadmin/assets/mouse_color_6_fr.png', {
-            frameWidth: 300,
-            frameHeight: 205
+            frameWidth: this.mouseSpriteWidth,
+            frameHeight: this.mouseSpriteHeight
         });
         this.load.spritesheet('star', 'fileadmin/assets/star.png', {
             frameWidth: 130,
@@ -49,19 +55,11 @@ class Game extends Phaser.Scene{
 
     create()
     {
-        // help functions / debug / variables
-        const percentage = (percent) => {return (this.GAME_WIDTH / 100) * percent;}
-        this.physics.world.debugDraw = true;
-        let small_block_width = this.textures.get("small_block").getSourceImage().width*this.BLOCK_SCALE;
-        let small_block_height = this.textures.get("small_block").getSourceImage().height*this.BLOCK_SCALE;
-        let middle_block_width = this.textures.get("middle_block").getSourceImage().width*this.BLOCK_SCALE;
-        let middle_block_height = this.textures.get("middle_block").getSourceImage().height*this.BLOCK_SCALE;
-
         // add sky
         this.sky = this.add.image(200, 200, 'sky').setScale(.5);
 
         // add star
-        this.star = this.physics.add.sprite(this.GAME_WIDTH / 2, 500, "star");
+        this.star = this.physics.add.sprite(this.gameWidth / 2, 500, "star");
         this.star
             .setCollideWorldBounds(true)
             .setScale(.2);
@@ -80,7 +78,7 @@ class Game extends Phaser.Scene{
         this.mouse.body.velocity.x = this.VELOCITY;
         this.mouse
             .setCollideWorldBounds(true)
-            .setScale(this.MOUSE_SCALE_BODY)
+            .setScale(this.mouseScale)
             .setOrigin(0, 0);
 
         // set hitBox a little smaller in x-axe
@@ -94,40 +92,36 @@ class Game extends Phaser.Scene{
         this.mouse.play("mouse_walk");
         //this.mouse.body.setGravityY(300)
 
-        // add platform
+        // add ground
         this.ground = this.add.image(
-            this.GAME_WIDTH / 2,
-            this.GAME_HEIGHT + this.SHIFT_DOWN_FILLER,
+            this.gameWidth / 2,
+            this.levelGround,
             "ground")
-            .setScale(.8);
+            .setScale(.7)
+            .setOrigin(.5, 0);
+
+        // add platforms
         this.physics.world.enable(this.ground, Phaser.Physics.Arcade.STATIC_BODY);
         this.platforms = this.physics.add.staticGroup();
-        this.FILLER_HEIGHT = this.ground.getBounds().height;
-        this.FILLER_TOP_Y = this.GAME_HEIGHT - this.FILLER_HEIGHT / 2 + this.SHIFT_DOWN_FILLER
-        this.LEVEL1_Y = this.FILLER_TOP_Y - percentage(15);
-        this.LEVEL2_Y = this.FILLER_TOP_Y - percentage(30) - small_block_height;
-        this.LEVEL3_Y = this.FILLER_TOP_Y - percentage(45) - small_block_height*2;
-        this.LEVEL4_Y = this.FILLER_TOP_Y - percentage(60) - small_block_height*3;
-        this.LEVEL5_Y = this.FILLER_TOP_Y - percentage(75) - small_block_height*4;
 
-        this.createPlatform(this.GAME_WIDTH, this.LEVEL1_Y, "right");
-        this.createPlatform(0, this.LEVEL2_Y, "left");
-        this.createPlatform(this.GAME_WIDTH, this.LEVEL3_Y, "right");
-        this.createPlatform(0, this.LEVEL4_Y, "left");
-        this.createPlatform(this.GAME_WIDTH, this.LEVEL5_Y, "right");
+        this.createPlatform(this.gameWidth - this.spaceToWall, this.levelOne, "right");
+        this.createPlatform(this.spaceToWall, this.levelTwo, "left");
+        this.createPlatform(this.gameWidth - this.spaceToWall, this.levelThree, "right");
+        this.createPlatform(this.spaceToWall, this.levelFour, "left");
+        this.createPlatform(this.gameWidth - this.spaceToWall, this.levelFive, "right");
 
         // add cheese
-        this.cheese = this.physics.add.sprite(this.GAME_WIDTH, this.LEVEL5_Y, "cheese");
+        this.cheese = this.physics.add.sprite(this.gameWidth - this.spaceToWall, this.levelFive - this.blockScaledHeight, "cheese");
         this.cheese
             .setCollideWorldBounds(true)
             .setScale(.1)
-            .setOrigin(1, .5)
+            .setOrigin(1, this.DEFAULT_PIVOT_Y)
             .refreshBody();
 
         // add button left
         this.add.image(
-            this.GAME_WIDTH / 5,
-            this.GAME_HEIGHT - (this.GAME_HEIGHT / 10),
+            this.gameWidth / 5,
+            this.gameHeight - (this.gameHeight / 10),
             'left')
             .setScale(.25)
             .setInteractive()
@@ -136,8 +130,8 @@ class Game extends Phaser.Scene{
             });
         // add button right
         this.add.image(
-            this.GAME_WIDTH - (this.GAME_WIDTH / 5),
-            this.GAME_HEIGHT - (this.GAME_HEIGHT / 10),
+            this.gameWidth - (this.gameWidth / 5),
+            this.gameHeight - (this.gameHeight / 10),
             'right')
             .setScale(.25)
             .setInteractive()
@@ -146,8 +140,8 @@ class Game extends Phaser.Scene{
             });
         // add button middle
         this.add.image(
-            this.GAME_WIDTH / 2,
-            this.GAME_HEIGHT - (this.GAME_HEIGHT / 10),
+            this.gameWidth / 2,
+            this.gameHeight - (this.gameHeight / 10),
             'jump')
             .setScale(.25)
             .setInteractive()
@@ -163,22 +157,22 @@ class Game extends Phaser.Scene{
         }, null, this);
         this.physics.add.collider(this.star, this.ground);
         this.physics.add.collider(this.star, this.platforms);
-        this.physics.add.collider(this.cheese, this.platforms);
+        this.physics.add.collider(this.cheese, this.ground);
         this.physics.add.collider(this.cheese, this.platforms);
     }
 
     update() {
         // things are happening constantly
         // check if mouse is colliding world bounds, change velocity. Add hit box offset
-        let hit_box_offset = ((this.MOUSE_WIDTH - (this.MOUSE_WIDTH*this.MOUSE_SCALE_HIT_BOX)) / 2) * this.MOUSE_SCALE_BODY;
+        let hit_box_offset = ((this.MOUSE_WIDTH - (this.MOUSE_WIDTH*this.MOUSE_SCALE_HIT_BOX)) / 2) * this.mouseScale;
 
         // pivot point left
         if (this.mouse.x <= 0 - hit_box_offset) this.mouse.setVelocityX(this.VELOCITY);
-        if (this.mouse.x >= (this.GAME_WIDTH - this.MOUSE_WIDTH * this.MOUSE_SCALE_BODY) + hit_box_offset) this.mouse.setVelocityX(-this.VELOCITY);
+        if (this.mouse.x >= (this.gameWidth - this.MOUSE_WIDTH * this.mouseScale) + hit_box_offset) this.mouse.setVelocityX(-this.VELOCITY);
 
 /*        // pivot point right
-        if (this.mouse.x <= this.MOUSE_WIDTH * this.MOUSE_SCALE_BODY - hit_box_offset) this.mouse.setVelocityX(this.VELOCITY);
-        if (this.mouse.x >= this.GAME_WIDTH + hit_box_offset) this.mouse.setVelocityX(-this.VELOCITY);*/
+        if (this.mouse.x <= this.MOUSE_WIDTH * this.mouseScale - hit_box_offset) this.mouse.setVelocityX(this.VELOCITY);
+        if (this.mouse.x >= this.gameWidth + hit_box_offset) this.mouse.setVelocityX(-this.VELOCITY);*/
 
         // check mouse velocity x and flip, if she is running to the left
         if (this.mouse.body.velocity.x > 0) this.mouse.setFlipX(false);
@@ -200,9 +194,9 @@ class Game extends Phaser.Scene{
             x,
             y,
             block)
-            .setScale(this.BLOCK_SCALE)
+            .setScale(this.blockScale)
             .refreshBody()
-            .setOrigin(pivotX, this.BLOCK_PIVOT_Y)
+            .setOrigin(pivotX, this.DEFAULT_PIVOT_Y)
             .refreshBody();
     }
 
