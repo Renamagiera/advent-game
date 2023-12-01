@@ -18,14 +18,13 @@ class Game extends Phaser.Scene{
     MOUSE_HEIGHT;
     MOUSE_SCALE_BODY = .2;
     MOUSE_SCALE_HIT_BOX = 1;
+    BLOCK_PIVOT_Y = 1;
     constructor() {
         super();
     }
 
     preload ()
     {
-
-
         this.load.image("sky", "fileadmin/assets/sky.jpg");
         this.load.image('very_small_block', 'fileadmin/assets/block.png');
         this.load.image('small_block', 'fileadmin/assets/small_block.png');
@@ -34,9 +33,17 @@ class Game extends Phaser.Scene{
         this.load.image('left', 'fileadmin/assets/left.png');
         this.load.image('jump', 'fileadmin/assets/jump.png');
         this.load.image('right', 'fileadmin/assets/right.png');
+        this.load.spritesheet('cheese', 'fileadmin/assets/cheese.png', {
+            frameWidth: 450,
+            frameHeight: 380
+        });
         this.load.spritesheet('mouse3', 'fileadmin/assets/mouse_color_6_fr.png', {
             frameWidth: 300,
             frameHeight: 205
+        });
+        this.load.spritesheet('star', 'fileadmin/assets/star.png', {
+            frameWidth: 130,
+            frameHeight: 150
         });
     }
 
@@ -52,6 +59,19 @@ class Game extends Phaser.Scene{
 
         // add sky
         this.sky = this.add.image(200, 200, 'sky').setScale(.5);
+
+        // add star
+        this.star = this.physics.add.sprite(this.GAME_WIDTH / 2, 500, "star");
+        this.star
+            .setCollideWorldBounds(true)
+            .setScale(.2);
+        this.anims.create({
+            key: "star_rotation",
+            frames: this.anims.generateFrameNumbers("star", { start: 0, end: 11}),
+            frameRate: 7,
+            repeat: -1
+        });
+        this.star.play("star_rotation");
 
         // add player
         this.mouse = this.physics.add.sprite(100, 300, 'mouse3');
@@ -73,8 +93,6 @@ class Game extends Phaser.Scene{
         });
         this.mouse.play("mouse_walk");
         //this.mouse.body.setGravityY(300)
-        let hitBoxShape = new Phaser.Geom.Rectangle(0, 0, 100, 100); // Beispiel: Rechteckform
-        this.mouse.setInteractive(hitBoxShape, Phaser.Geom.Rectangle.Contains);
 
         // add platform
         this.ground = this.add.image(
@@ -90,12 +108,21 @@ class Game extends Phaser.Scene{
         this.LEVEL2_Y = this.FILLER_TOP_Y - percentage(30) - small_block_height;
         this.LEVEL3_Y = this.FILLER_TOP_Y - percentage(45) - small_block_height*2;
         this.LEVEL4_Y = this.FILLER_TOP_Y - percentage(60) - small_block_height*3;
+        this.LEVEL5_Y = this.FILLER_TOP_Y - percentage(75) - small_block_height*4;
 
-        this.createPlatform(this.GAME_WIDTH - percentage(10), this.LEVEL1_Y);
-        console.log(this.GAME_WIDTH - percentage(10));
-        this.createPlatform(small_block_width + percentage(10), this.LEVEL2_Y);
-        this.createPlatform(this.GAME_WIDTH - percentage(10), this.LEVEL3_Y);
-        this.createPlatform(small_block_width + percentage(10), this.LEVEL4_Y);
+        this.createPlatform(this.GAME_WIDTH, this.LEVEL1_Y, "right");
+        this.createPlatform(0, this.LEVEL2_Y, "left");
+        this.createPlatform(this.GAME_WIDTH, this.LEVEL3_Y, "right");
+        this.createPlatform(0, this.LEVEL4_Y, "left");
+        this.createPlatform(this.GAME_WIDTH, this.LEVEL5_Y, "right");
+
+        // add cheese
+        this.cheese = this.physics.add.sprite(this.GAME_WIDTH, this.LEVEL5_Y, "cheese");
+        this.cheese
+            .setCollideWorldBounds(true)
+            .setScale(.1)
+            .setOrigin(1, .5)
+            .refreshBody();
 
         // add button left
         this.add.image(
@@ -134,6 +161,10 @@ class Game extends Phaser.Scene{
             if (this.mouse.body.touching.left) this.mouse.setVelocityX(this.VELOCITY);
             else if (this.mouse.body.touching.right) this.mouse.setVelocityX(-this.VELOCITY);
         }, null, this);
+        this.physics.add.collider(this.star, this.ground);
+        this.physics.add.collider(this.star, this.platforms);
+        this.physics.add.collider(this.cheese, this.platforms);
+        this.physics.add.collider(this.cheese, this.platforms);
     }
 
     update() {
@@ -162,13 +193,16 @@ class Game extends Phaser.Scene{
         value === "left" ? this.mouse.setVelocityX(-this.VELOCITY) : this.mouse.setVelocityX(this.VELOCITY);
     }
 
-    createPlatform(x, y, block="small_block") {
-        this.platforms.create(
+    createPlatform(x, y, pivot, block="small_block") {
+        let pivotX;
+        pivot === "left" ? pivotX = 0 : pivotX = 1;
+            this.platforms.create(
             x,
             y,
             block)
             .setScale(this.BLOCK_SCALE)
-            .setOrigin(1, 1)
+            .refreshBody()
+            .setOrigin(pivotX, this.BLOCK_PIVOT_Y)
             .refreshBody();
     }
 

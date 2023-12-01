@@ -17,6 +17,7 @@ body {
     display: flex;
     justify-content: center;
     flex-flow: row nowrap;
+    height: 100dvh;
 }
 
 canvas {
